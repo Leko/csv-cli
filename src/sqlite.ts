@@ -1,7 +1,7 @@
-import { createReadStream } from "fs";
-import fs from "fs/promises";
-import os from "os";
-import path from "path";
+import { createReadStream } from "node:fs";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { createHash } from "crypto";
 import Database from "better-sqlite3";
 import _debug from "debug";

@@ -1,9 +1,9 @@
 import glob from "glob";
 import chunk from "lodash/chunk";
 import Table from "cli-table3";
+import chalk from "chalk";
 import { cacheAndLoad } from "../sqlite";
 import { noBorderOptions, stripe } from "../table";
-import chalk from "chalk";
 
 export async function describe(
   globPattern: string,

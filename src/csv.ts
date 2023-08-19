@@ -1,5 +1,5 @@
-import { createReadStream } from "fs";
-import fs from "fs/promises";
+import { createReadStream } from "node:fs";
+import fs from "node:fs/promises";
 import { detect } from "jschardet";
 import { decodeStream, encodeStream } from "iconv-lite";
 import { parse } from "@fast-csv/parse";
