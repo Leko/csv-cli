@@ -6,7 +6,7 @@ import { unique } from "./commands/unique";
 
 export function run(argv: string[]) {
   const options = yargs(argv)
-    .scriptName("csv")
+    .scriptName("csv-stat")
     .usage("$0 <subcommand> [options...]")
     .option("avoid-using-first-row-as-header", {
       type: "boolean",

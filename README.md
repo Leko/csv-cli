@@ -1,20 +1,20 @@
 # csv-cli
 
-Command-Line utility for checking statistical features of CSV file(s)
+Command-line utility for checking statistical features of CSV file(s)
 
 ## Install
 
-`npm i csv-cli`
+`npm i csv-stat-cli`
 
 ## Usage
 
 ```
-csv <subcommand> [options...]
+csv-stat <subcommand> [options...]
 
 Commands:
-  csv describe <glob>         Describe statistical features of given CSVs
-  csv unique <glob> <column>  Describe statistical features of given CSVs
-  csv intersections <glob>    Describe statistical features of given CSVs
+  csv-stat describe <glob>         Describe statistical features of given CSVs
+  csv-stat unique <glob> <column>  Describe statistical features of given CSVs
+  csv-stat intersections <glob>    Describe statistical features of given CSVs
 
 Options:
       --help                             Show help                     [boolean]
@@ -25,7 +25,7 @@ Options:
 ### describe
 
 ```
-csv describe example/test.csv
+csv-stat describe example/test.csv
 ```
 
 ```
@@ -46,7 +46,7 @@ test (1000 rows)
 ### unique
 
 ```
-csv unique example/test.csv str
+csv-stat unique example/test.csv str
 ```
 
 ```
