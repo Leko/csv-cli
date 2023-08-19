@@ -3,16 +3,31 @@ import chunk from "lodash/chunk";
 import Table from "cli-table3";
 import { cacheAndLoad } from "../sqlite";
 import { noBorderOptions, stripe } from "../table";
+import chalk from "chalk";
 
-export async function describe(globPattern: string) {
+export async function describe(
+  globPattern: string,
+  {
+    useFirstRowAsHeader,
+    sampleSize,
+  }: { useFirstRowAsHeader: boolean; sampleSize: number }
+) {
   let out = "";
   const csvFilePaths = glob.sync(globPattern);
-  const csvs = await Promise.all(csvFilePaths.map(cacheAndLoad));
+  if (csvFilePaths.length === 0) {
+    throw new Error(`No CSV files found for pattern: ${globPattern}`);
+  }
+  const csvs = await Promise.all(
+    csvFilePaths.map((f) => cacheAndLoad(f, { useFirstRowAsHeader }))
+  );
   csvs.forEach(({ tableName: t, database }, i) => {
+    const { rowCount } = database
+      .prepare(`SELECT COUNT(*) AS rowCount FROM "${t}"`)
+      .get();
     const columns = database
       .prepare(`SELECT * FROM "${t}" LIMIT 1`)
       .columns()
-      .map((c) => c.column);
+      .map((c) => c.column!);
     // SQLite only accepts 100 columns per query
     // We need to separate columns into multiple queries
     const selectColumns = columns.flatMap((c) => [
@@ -34,6 +49,20 @@ export async function describe(globPattern: string) {
       },
       {}
     );
+    const uniqueValues = columns.reduce((map, c) => {
+      const results = database
+        .prepare(
+          `SELECT
+            COUNT(*) AS count,
+            "${c}" AS value
+          FROM "${t}"
+          GROUP BY "${c}"
+          ORDER BY count DESC
+          LIMIT ?`
+        )
+        .all([sampleSize]);
+      return map.set(c, results);
+    }, new Map<string, { value: string; count: number }[]>());
     function missing(value: number, base: number): string {
       return ((1 - value / base) * 100).toFixed(0);
     }
@@ -41,12 +70,13 @@ export async function describe(globPattern: string) {
       head: [
         "column",
         "count",
-        "missing",
-        "unique",
+        "miss",
+        "uniq",
         "mean",
         "min",
         "max",
         "std",
+        "uniq values",
       ],
       wordWrap: false,
       wrapOnWordBoundary: false,
@@ -66,9 +96,20 @@ export async function describe(globPattern: string) {
         isNumber ? stats[`${c}_min`] : "",
         isNumber ? stats[`${c}_max`] : "",
         isNumber ? stats[`${c}_std`] : "",
+        uniqueValues
+          .get(c)
+          ?.map(
+            (r) =>
+              `${r.value === "" ? chalk.dim("(empty)") : r.value} (${
+                r.count
+              }, ${((r.count / rowCount) * 100).toFixed(2)}%)`
+          )
+          .join("\n"),
       ]);
     });
-    out += [t, stripe(table.toString()), "\n"].join("\n");
+    out += [`${t} (${rowCount} rows)`, stripe(table.toString()), "\n"].join(
+      "\n"
+    );
   });
   csvs.forEach(({ database }) => database.close());
   return out.trim();

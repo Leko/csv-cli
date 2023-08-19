@@ -3,9 +3,14 @@ import Table from "cli-table3";
 import { cacheAndLoad } from "../sqlite";
 import { noBorderOptions, stripe } from "../table";
 
-export async function intersections(globPattern: string) {
+export async function intersections(
+  globPattern: string,
+  { useFirstRowAsHeader }: { useFirstRowAsHeader: boolean }
+) {
   const csvFilePaths = glob.sync(globPattern);
-  const csvs = await Promise.all(csvFilePaths.map(cacheAndLoad));
+  const csvs = await Promise.all(
+    csvFilePaths.map((f) => cacheAndLoad(f, { useFirstRowAsHeader }))
+  );
   const intersections = new Map();
   csvs.forEach(({ database, tableName: t }, i) => {
     const columns = database
